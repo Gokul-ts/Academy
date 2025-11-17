@@ -9,12 +9,12 @@ using static System.Console;
 
 internal class Program {
    private static void Main () {
-      var words = File.ReadAllLines (@"C:\etc\words.txt");
-      if (words.Length == 0) {
+      var chars = File.ReadAllText (tData);
+      if (chars.Length == 0) {
          WriteLine ("No words found in the file.");
          return;
       }
-      var fTable = BuildTable (words);
+      var fTable = BuildTable (chars);
       WriteLine ("Letter | Occurrences\n--------------------");
       int i = 0;
       foreach (var item in fTable) {
@@ -25,16 +25,15 @@ internal class Program {
       }
    }
 
-   static Dictionary<char, int> BuildTable (string[] words) {
-      foreach (var word in words)
-         foreach (var ch in word)
-            if (ch >= 'A' && ch <= 'Z')
-               if (freqTable.TryGetValue (ch, out int value))
-                  freqTable[ch] = ++value;
-               else freqTable.Add (ch, 1);
-      freqTable = freqTable.OrderByDescending (a => a.Value).ToDictionary (a => a.Key, a => a.Value);
-      return freqTable;
+   static Dictionary<char, int> BuildTable (string chars) {
+      foreach (var ch in chars.ToUpper ())
+         if (ch is >= 'A' and <= 'Z')
+            if (!freqTable.TryAdd (ch, 1))
+               freqTable[ch]++;
+      return freqTable.OrderByDescending (a => a.Value).ToDictionary ();
    }
 
    static Dictionary<char, int> freqTable = [];
+
+   static string tData = @"TData\words.txt";
 }
