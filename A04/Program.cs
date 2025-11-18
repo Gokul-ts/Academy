@@ -8,8 +8,8 @@
 using static System.Console;
 
 internal class Program {
-   private static void Main () {
-      var chars = File.ReadAllText (tData);
+   static void Main () {
+      var chars = File.ReadAllText (@"TData\words.txt");
       if (chars.Length == 0) {
          WriteLine ("No words found in the file.");
          return;
@@ -18,7 +18,7 @@ internal class Program {
       WriteLine ("Letter | Occurrences\n--------------------");
       int i = 0;
       foreach (var item in fTable) {
-         if (i < 7) { ForegroundColor = ConsoleColor.Green; }
+         if (i < 7) ForegroundColor = ConsoleColor.Green;
          WriteLine ($"{item.Key,-6} | {item.Value}");
          ResetColor ();
          i++;
@@ -28,12 +28,9 @@ internal class Program {
    static Dictionary<char, int> BuildTable (string chars) {
       foreach (var ch in chars.ToUpper ())
          if (ch is >= 'A' and <= 'Z')
-            if (!freqTable.TryAdd (ch, 1))
-               freqTable[ch]++;
+            if (!freqTable.TryAdd (ch, 1)) freqTable[ch]++;
       return freqTable.OrderByDescending (a => a.Value).ToDictionary ();
    }
 
    static Dictionary<char, int> freqTable = [];
-
-   static string tData = @"TData\words.txt";
 }
