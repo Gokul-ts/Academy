@@ -7,6 +7,8 @@
 // ------------------------------------------------------------------------------------------------
 using static System.Console;
 
+#region class Program -----------------------------------------------------------------------------
+/// <summary>Program class to test DoubleParser class implementation</summary>
 internal class Program {
    static void Main () {
       for (; ; ) {
@@ -35,15 +37,19 @@ internal class Program {
       }
    }
 }
+#endregion
 
-/// <summary>Exception class with customized message</summary>
+#region class EvalException -----------------------------------------------------------------------
+/// <summary>EvalException class inherited from exception class with customized message</summary>
 class EvalException (string message) : Exception (message) {
 }
+#endregion
 
 #region class DoubleParser ------------------------------------------------------------------------
-/// <summary>Parses string into double with base and exponent</summary>
+/// <summary>Parser class to implement double parsing methods given a string</summary>
 static class DoubleParser {
    #region Methods --------------------------------------------------
+   /// <summary>Tries to parse string value into double</summary>
    public static bool TryParse (string input, out double result) {
       result = 0.0;
       if (string.IsNullOrWhiteSpace (input)) return false;
@@ -69,20 +75,22 @@ static class DoubleParser {
       }
       return true;
    }
+   #endregion
 
-   /// <summary>Tries to parse string base value into double</summary>
+   #region Implementation -------------------------------------------
+   // Tries to parse string base value into double
    static double TryParseBase (string str) {
       if (EvaluateBase (str)) return sBase;
       throw new EvalException ("Not a valid input!!");
    }
 
-   /// <summary>Tries to parse string exponent value into integer</summary>
+   // Tries to parse string exponent value into integer
    static int TryParseExp (string str) {
       if (EvaluateExp (str)) return sExp;
       throw new EvalException ("Not a valid input!!");
    }
 
-   /// <summary>Evaluates the input string base value</summary>
+   // Evaluates the input string base value
    static bool EvaluateBase (string basePart) {
       if (string.IsNullOrEmpty (basePart)) return false;
       bool hasDecimal = false;
@@ -114,7 +122,7 @@ static class DoubleParser {
       return true;
    }
 
-   /// <summary>Evaluates the input string exponent value</summary>
+   // Evaluates the input string exponent value
    static bool EvaluateExp (string exp) {
       if (string.IsNullOrEmpty (exp)) return false;
       int i = 0;
@@ -133,7 +141,7 @@ static class DoubleParser {
    }
    #endregion
 
-   #region Private variables ----------------------------------------
+   #region Private data ---------------------------------------------
    static double sBase; // stores base value
    static int sExp; // stores exponent value
    #endregion
