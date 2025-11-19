@@ -6,26 +6,47 @@
 // Program to implement a clone of double.TryParse method.
 // ------------------------------------------------------------------------------------------------
 using static System.Console;
-using static DoubleParser;
 
 internal class Program {
    static void Main () {
       for (; ; ) {
-         Write ("Enter a string to parse: ");
-         if (!TryParse (ReadLine ()!, out double value)) {
-            WriteLine ("Invalid input. Please try again.");
-            continue;
+         WriteLine ("Enter [T] to run test case or any other key to continue: ");
+         switch (ReadKey (true).Key) {
+            case ConsoleKey.T: {
+                  var data = new Dictionary<string, double> { { "0.1", 0.1 }, { "2.5e-4", 0.00025 },
+                  { "-15.035e-1", -1.5035 }, { "-+1.5", 0 }, { "0.9e-+1",0}, { "0..1", 0 } };
+                  int i = 0;
+                  foreach (var (inp, op) in data) {
+                     DoubleParser.TryParse (inp, out double result);
+                     WriteLine ($"Test case {++i} {(result == op ? "passed" : "failed")}");
+                  }
+                  continue;
+               }
+            default:
+               for (; ; ) {
+                  Write ("Enter a string to parse: ");
+                  if (!DoubleParser.TryParse (ReadLine ()!, out double value)) {
+                     WriteLine ("Invalid input. Please try again.");
+                     continue;
+                  }
+                  WriteLine ("Parsed value: " + value);
+               }
          }
-         WriteLine ("Parsed value: " + value);
       }
    }
 }
 
+/// <summary>Exception class with customized message</summary>
+class EvalException (string message) : Exception (message) {
+}
+
+#region class DoubleParser ------------------------------------------------------------------------
+/// <summary>Parses string into double with base and exponent</summary>
 static class DoubleParser {
+   #region Methods --------------------------------------------------
    public static bool TryParse (string input, out double result) {
       result = 0.0;
-      if (string.IsNullOrWhiteSpace (input))
-         return false;
+      if (string.IsNullOrWhiteSpace (input)) return false;
       // Remove unwanted spaces
       input = input.Trim ();
       // Check for multiple signs
@@ -36,8 +57,7 @@ static class DoubleParser {
       }
       // Determine overall sign
       bool isNegative = input.StartsWith ('-');
-      if (input.StartsWith ('+') || isNegative)
-         input = input[1..];
+      if (input.StartsWith ('+') || isNegative) input = input[1..];
       // Split into base and exponent
       int eIndex = input.IndexOfAny (['e', 'E']);
       string basePart = eIndex >= 0 ? input[..eIndex] : input;
@@ -50,16 +70,19 @@ static class DoubleParser {
       return true;
    }
 
-   static public double TryParseBase (string str) {
-      if (EvaluateBase (str)) return BaseValue;
+   /// <summary>Tries to parse string base value into double</summary>
+   static double TryParseBase (string str) {
+      if (EvaluateBase (str)) return sBase;
       throw new EvalException ("Not a valid input!!");
    }
 
-   static public int TryParseExp (string str) {
-      if (EvaluateExp (str)) return ExpValue;
+   /// <summary>Tries to parse string exponent value into integer</summary>
+   static int TryParseExp (string str) {
+      if (EvaluateExp (str)) return sExp;
       throw new EvalException ("Not a valid input!!");
    }
 
+   /// <summary>Evaluates the input string base value</summary>
    static bool EvaluateBase (string basePart) {
       if (string.IsNullOrEmpty (basePart)) return false;
       bool hasDecimal = false;
@@ -87,10 +110,11 @@ static class DoubleParser {
          }
          i++;
       }
-      BaseValue = result;
+      sBase = result;
       return true;
    }
 
+   /// <summary>Evaluates the input string exponent value</summary>
    static bool EvaluateExp (string exp) {
       if (string.IsNullOrEmpty (exp)) return false;
       int i = 0;
@@ -104,24 +128,14 @@ static class DoubleParser {
          result = result * 10 + (c - '0');
          i++;
       }
-      ExpValue = isNegative ? -result : result;
+      sExp = isNegative ? -result : result;
       return true;
    }
+   #endregion
 
-   public static double BaseValue {
-      get { return mBaseValue; }
-      set { mBaseValue = value; }
-   }
-
-   public static int ExpValue {
-      get { return mExpValue; }
-      set { mExpValue = value; }
-   }
-
-   static double mBaseValue;
-
-   static int mExpValue;
+   #region Private variables ----------------------------------------
+   static double sBase; // stores base value
+   static int sExp; // stores exponent value
+   #endregion
 }
-
-class EvalException (string message) : Exception (message) {
-}
+#endregion
