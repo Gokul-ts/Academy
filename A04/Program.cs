@@ -29,9 +29,7 @@ internal class Program {
          WriteLine ("Error reading file!");
       }
    }
-   #endregion
 
-   #region Methods --------------------------------------------------
    // Builds a frequency table for alphabetic characters
    static Dictionary<char, int> BuildTable (string chars) {
       foreach (var ch in chars.ToUpper ())
