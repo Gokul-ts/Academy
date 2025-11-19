@@ -9,7 +9,6 @@ using static System.Console;
 
 #region class Program -----------------------------------------------------------------------------
 internal class Program {
-   #region Implementation -------------------------------------------
    static void Main () {
       try {
          var chars = File.ReadAllText (@"TData\words.txt");
@@ -30,6 +29,7 @@ internal class Program {
       }
    }
 
+   #region Implementation -------------------------------------------
    // Builds a frequency table for alphabetic characters
    static Dictionary<char, int> BuildTable (string chars) {
       foreach (var ch in chars.ToUpper ())
