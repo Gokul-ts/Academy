@@ -3,74 +3,71 @@
 // Copyright (c) Metamation India.
 // ------------------------------------------------------------------
 // Program.cs
-// Program to print unique solutions for the N-Queens problem.
+// Program to print unique solutions for the 8-Queens problem.
 // ------------------------------------------------------------------------------------------------
 using static System.Console;
 using System.Text;
 
 #region class Program  ----------------------------------------------------------------------------
+/// <summary>Program class to generate and print unique solutions for 8-queens problem</summary>
 internal class Program {
-   #region Methods --------------------------------------------------
    static void Main () {
       GenSolutions (0);
       PrintBoard ();
    }
 
-   /// <summary>Generates multiple solutions with unique queen positions</summary>
+   #region Implementation -------------------------------------------
+   // Generates multiple solutions with unique queen positions
    static void GenSolutions (int row) {
       if (row == Size) {
          if (!IsDuplicate (sBoard)) sSolutions.Add ([.. sBoard]);
          return;
       }
-      for (int col = 0; col < Size; col++) {
+      for (int col = 0; col < Size; col++)
          if (IsSafe (row, col)) {
             sBoard[row] = col;
             GenSolutions (row + 1);
          }
-      }
    }
 
-   /// <summary>Checks whether the queen is safe to place in
-   /// linear and diagonal directions</summary>
+   // Checks whether the queen is safe to place in linear and diagonal directions
    static bool IsSafe (int row, int col) {
-      for (int i = 0; i < row; i++) {
+      for (int i = 0; i < row; i++)
          if (sBoard[i] == col ||
              sBoard[i] - i == col - row ||
-             sBoard[i] + i == col + row) {
+             sBoard[i] + i == col + row)
             return false;
-         }
-      }
       return true;
    }
 
-   /// <summary>Returns whether a duplicate solution exists or not</summary>
+   // Returns whether a duplicate solution exists already or not
    static bool IsDuplicate (int[] soln) {
       for (int i = 0; i < 4; i++) {
          soln = Rotate (soln);
-         // Checks if the solution already exists
-         if (Exists (soln)) return true;
-         // Checks for horizontal mirror duplicate solutions
-         if (Exists ([.. soln.Select (x => Size - 1 - x)])) return true;
-         // Checks for vertical mirror duplicate solutions
-         if (Exists ([.. soln.Reverse ()])) return true;
+         if (Exists (soln) ||                             // Checks if the solution already exists
+             Exists ([.. soln.Select (x => Last - x)]) || // Checks for horizontal mirror duplicates
+             Exists ([.. soln.Reverse ()]))               // Checks for vertical mirror duplicates
+            return true;
       }
       return false;
 
+      // Helper function to compare two sequences
       bool Exists (int[] arr) {
          for (int i = 0; i < sSolutions.Count; i++)
             if (sSolutions[i].SequenceEqual (arr)) return true;
          return false;
       }
 
+      // Helper function to rotate the solution
       int[] Rotate (int[] arr) {
          int[] temp = new int[Size];
          for (int i = 0; i < Size; i++)
-            temp[arr[i]] = Size - 1 - i;
+            temp[arr[i]] = Last - i;
          return temp;
       }
    }
 
-   /// <summary>Prints the solution to the console</summary>
+   // Prints all solutions to the console
    static void PrintBoard () {
       OutputEncoding = Encoding.UTF8;
       int i = 0;
@@ -81,7 +78,7 @@ internal class Program {
             Write ("┃");
             for (int col = 0; col < Size; col++)
                Write ($" {(col == soln[row] ? "\u2655" : " ")} ┃");
-            if (row < Size - 1) Write ("\n┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫\n");
+            if (row < Last) Write ("\n┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫\n");
          }
          Write ("\n┗━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┛\n");
          ReadKey (true);
@@ -89,12 +86,11 @@ internal class Program {
    }
    #endregion
 
-   #region Private variables ----------------------------------------
-   const int Size = 8; // size of the board
-
+   #region Private data ---------------------------------------------
+   const int Size = 8;                  // size of the board
+   const int Last = Size - 1;           // index of last element
    static int[] sBoard = new int[Size]; // board representation
-
-   static List<int[]> sSolutions = []; // list to store unique solutions
+   static List<int[]> sSolutions = [];  // list to store unique solutions
    #endregion
 }
 #endregion
