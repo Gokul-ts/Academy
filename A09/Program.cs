@@ -7,6 +7,7 @@
 // ------------------------------------------------------------------------------------------------
 using static System.Console;
 
+#region class Program -----------------------------------------------------------------------------
 class Program {
    static void Main () {
       var q = new MyQueue<int> ();
@@ -31,13 +32,16 @@ class Program {
          Assert (e.Message == "Queue is empty!", 6);
       }
 
+      // Helper function to assert test cases
       void Assert (bool condition, int caseId)
          => WriteLine ($"Test case {caseId} {(condition ? "passed" : "failed")}");
    }
 }
+#endregion
 
-#region Class MyList<T> ---------------------------------------------
+#region Class MyQueue<T> --------------------------------------------------------------------------
 class MyQueue<T> {
+   #region Methods --------------------------------------------------
    /// <summary>Adds an element to the end of queue</summary>
    public void Enqueue (T element) {
       if (IsFull ()) {
@@ -63,6 +67,7 @@ class MyQueue<T> {
 
    /// <summary>Returns whether the queue is full</summary>
    public bool IsFull () => mCount == Capacity;
+   #endregion
 
    #region Properties -----------------------------------------------
    public int Capacity {
@@ -74,7 +79,7 @@ class MyQueue<T> {
    int mCount;
    #endregion
 
-   #region Private variables ----------------------------------------
+   #region Private data ---------------------------------------------
    int mStart;
    int mEnd;
    T[] mArray = new T[4];
