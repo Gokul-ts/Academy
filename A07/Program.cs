@@ -15,13 +15,18 @@ internal class Program {
          WriteLine ("Enter [T] to run test case or any other key to continue: ");
          switch (ReadKey (true).Key) {
             case ConsoleKey.T: {
-                  var data = new Dictionary<string, double> { { "0.1", 0.1 }, { "2.5e-4", 0.00025 },
-                  { "-15.035e-1", -1.5035 }, { "-+1.5", 0 }, { "0.9e-+1",0}, { "0..1", 0 } };
-                  int i = 0;
+                  var data = new Dictionary<string, double>
+                  { { "123", 123 }, { "-123", -123 }, { "123.45", 123.45 }, { "-123.45", -123.45 },
+                  { "+123.45e45", 1.2345e+47 }, { "-123.45e-45", -1.2345e-43 }, { "123e-45", 1.23e-43 },
+                  { ".45e3", 450 }, { "123.", 123 }, { "4.e45", 4e+45 }, { "34.4E3", 34400 }, { "", 0 },
+                  { "-12-3e3", 0 }, { "e24", 0 }, { "nan", 0 }, { "123+", 0 }, { ".e-", 0 }, { "-e+", 0 },
+                  { "-+98", 0 }, { "-123.-1", 0 }, { "1..1", 0 }, { "8-e", 0 }, { "1e-1", 0.1 } };
+                  bool pass = true;
                   foreach (var (inp, op) in data) {
                      DoubleParser.TryParse (inp, out double result);
-                     WriteLine ($"Test case {++i} {(result == op ? "passed" : "failed")}");
+                     if (result != op) { pass = false; break; }
                   }
+                  WriteLine ($"Test cases {(pass ? "passed" : "failed")}");
                   continue;
                }
             default:
@@ -39,9 +44,9 @@ internal class Program {
 }
 #endregion
 
-#region class EvalException -----------------------------------------------------------------------
-/// <summary>EvalException class inherited from exception class with customized message</summary>
-class EvalException (string message) : Exception (message) {
+#region class ParseException -----------------------------------------------------------------------
+/// <summary>Class inherited from exception class with customized message</summary>
+class ParseException (string message) : Exception (message) {
 }
 #endregion
 
@@ -56,18 +61,19 @@ static class DoubleParser {
       // Remove unwanted spaces
       input = input.Trim ();
       // Check for multiple signs
-      int sCount = 0;
-      while (sCount < input.Length && (input[sCount] == '+' || input[sCount] == '-')) {
-         sCount++;
-         if (sCount > 1) return false;
+      int count = 0;
+      while (count < input.Length && (input[count] == '+' || input[count] == '-')) {
+         count++;
+         if (count > 1) return false;
       }
       // Determine overall sign
       bool isNegative = input.StartsWith ('-');
       if (input.StartsWith ('+') || isNegative) input = input[1..];
       // Split into base and exponent
       int eIndex = input.IndexOfAny (['e', 'E']);
-      string basePart = eIndex >= 0 ? input[..eIndex] : input;
-      string expPart = eIndex >= 0 ? input[(eIndex + 1)..] : "0";
+      bool hasExp = eIndex >= 0;
+      string basePart = hasExp ? input[..eIndex] : input;
+      string expPart = hasExp ? input[(eIndex + 1)..] : "0";
       try {
          result = TryParseBase (basePart) * Math.Pow (10, TryParseExp (expPart)) * (isNegative ? -1 : 1);
       } catch {
@@ -81,14 +87,19 @@ static class DoubleParser {
    // Tries to parse string base value into double
    static double TryParseBase (string str) {
       if (EvaluateBase (str)) return sBase;
-      throw new EvalException ("Not a valid input!!");
+      Error ();
+      return 0;
    }
 
    // Tries to parse string exponent value into integer
    static int TryParseExp (string str) {
       if (EvaluateExp (str)) return sExp;
-      throw new EvalException ("Not a valid input!!");
+      Error ();
+      return 0;
    }
+
+   // Throws not valid input exception 
+   static void Error () => throw new ParseException ("Not a valid input!!");
 
    // Evaluates the input string base value
    static bool EvaluateBase (string basePart) {
@@ -97,10 +108,7 @@ static class DoubleParser {
       double result = 0;
       double decimalFactor = 0.1;
       int i = 0;
-      if (basePart.StartsWith ('.')) {
-         hasDecimal = true;
-         i++;
-      }
+      if (basePart.StartsWith ('.')) { hasDecimal = true; i++; }
       while (i < basePart.Length) {
          char c = basePart[i];
          if (c == '.') {
@@ -112,10 +120,7 @@ static class DoubleParser {
          if (c < '0' || c > '9') return false;
          int digit = c - '0';
          if (!hasDecimal) result = result * 10 + digit;
-         else {
-            result += digit * decimalFactor;
-            decimalFactor /= 10;
-         }
+         else { result += digit * decimalFactor; decimalFactor /= 10; }
          i++;
       }
       sBase = result;
@@ -131,10 +136,9 @@ static class DoubleParser {
       if (i >= exp.Length) return false;
       int result = 0;
       while (i < exp.Length) {
-         char c = exp[i];
+         char c = exp[i++];
          if (c < '0' || c > '9') return false;
          result = result * 10 + (c - '0');
-         i++;
       }
       sExp = isNegative ? -result : result;
       return true;
