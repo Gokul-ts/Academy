@@ -15,17 +15,17 @@ internal class Program {
          WriteLine ("Enter [T] to run test case or any other key to continue: ");
          switch (ReadKey (true).Key) {
             case ConsoleKey.T: {
-                  var data = new Dictionary<string, double>
-                  { { "123", 123 }, { "-123", -123 }, { "123.45", 123.45 }, { "-123.45", -123.45 },
-                  { "+123.45e45", 1.2345e+47 }, { "-123.45e-45", -1.2345e-43 }, { "123e-45", 1.23e-43 },
-                  { ".45e3", 450 }, { "123.", 123 }, { "4.e45", 4e+45 }, { "34.4E3", 34400 }, { "", 0 },
-                  { "-12-3e3", 0 }, { "e24", 0 }, { "nan", 0 }, { "123+", 0 }, { ".e-", 0 }, { "-e+", 0 },
-                  { "-+98", 0 }, { "-123.-1", 0 }, { "1..1", 0 }, { "8-e", 0 }, { "1e-1", 0.1 } };
+                  var tData = new List<string> { "123", "-123", "123.45", "-123.45", "+123.45e45",
+                  "-123.45e-45", "123e-45", ".45e3", "123.", "4.e45", "34.4E3", "", "-12-3e3",
+                  "e24", "123+", ".e-", "-e+", "-+98", "-123.-1", "1..1", "8-e", "1e-1" };
                   bool pass = true;
-                  foreach (var (inp, op) in data) {
-                     DoubleParser.TryParse (inp, out double result);
-                     if (result != op) { pass = false; break; }
+                  foreach (var inp in tData) {
+                     DoubleParser.TryParse (inp, out double result1);
+                     double.TryParse (inp, out double result2);
+                     if (result1 != result2) { pass = false; break; }
                   }
+                  DoubleParser.TryParse ("nan", out double result);
+                  if (!double.IsNaN (result)) pass = false;
                   WriteLine ($"Test cases {(pass ? "passed" : "failed")}");
                   continue;
                }
@@ -44,10 +44,9 @@ internal class Program {
 }
 #endregion
 
-#region class ParseException -----------------------------------------------------------------------
+#region class ParseException ----------------------------------------------------------------------
 /// <summary>Class inherited from exception class with customized message</summary>
-class ParseException (string message) : Exception (message) {
-}
+class ParseException (string message) : Exception (message) { }
 #endregion
 
 #region class DoubleParser ------------------------------------------------------------------------
@@ -56,6 +55,7 @@ static class DoubleParser {
    #region Methods --------------------------------------------------
    /// <summary>Tries to parse string value into double</summary>
    public static bool TryParse (string input, out double result) {
+      if (input.ToLower () is "nan") { result = double.NaN; return true; }
       result = 0.0;
       if (string.IsNullOrWhiteSpace (input)) return false;
       // Remove unwanted spaces
@@ -87,19 +87,19 @@ static class DoubleParser {
    // Tries to parse string base value into double
    static double TryParseBase (string str) {
       if (EvaluateBase (str)) return sBase;
-      Error ();
+      ThrowError ();
       return 0;
    }
 
    // Tries to parse string exponent value into integer
    static int TryParseExp (string str) {
       if (EvaluateExp (str)) return sExp;
-      Error ();
+      ThrowError ();
       return 0;
    }
 
    // Throws not valid input exception 
-   static void Error () => throw new ParseException ("Not a valid input!!");
+   static void ThrowError () => throw new ParseException ("Not a valid input!!");
 
    // Evaluates the input string base value
    static bool EvaluateBase (string basePart) {
