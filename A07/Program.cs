@@ -14,21 +14,21 @@ internal class Program {
       for (; ; ) {
          WriteLine ("Enter [T] to run test case or any other key to continue: ");
          switch (ReadKey (true).Key) {
-            case ConsoleKey.T: {
-                  var tData = new List<string> { "123", "-123", "123.45", "-123.45", "+123.45e45",
+            case ConsoleKey.T:
+               var tData = new List<string> { "123", "-123", "123.45", "-123.45", "+123.45e45",
                   "-123.45e-45", "123e-45", ".45e3", "123.", "4.e45", "34.4E3", "", "-12-3e3",
-                  "e24", "123+", ".e-", "-e+", "-+98", "-123.-1", "1..1", "8-e", "1e-1" };
-                  bool pass = true;
-                  foreach (var inp in tData) {
-                     DoubleParser.TryParse (inp, out double result1);
-                     double.TryParse (inp, out double result2);
-                     if (result1 != result2) { pass = false; break; }
-                  }
-                  DoubleParser.TryParse ("nan", out double result);
-                  if (!double.IsNaN (result)) pass = false;
-                  WriteLine ($"Test cases {(pass ? "passed" : "failed")}");
-                  continue;
+                  "e24", "123+", ".e-", "-e+", "-+98", "-123.-1", "1..1", "8-e", "1e-1", "nan" };
+               bool pass = true;
+               foreach (var inp in tData) {
+                  DoubleParser.TryParse (inp, out double result1);
+                  if (inp is "nan" && double.IsNaN (result1)) continue;
+                  double.TryParse (inp, out double result2);
+                  if (result1 == result2) continue;
+                  pass = false;
+                  break;
                }
+               WriteLine ($"Test cases {(pass ? "passed" : "failed")}");
+               continue;
             default:
                for (; ; ) {
                   Write ("Enter a string to parse: ");
@@ -36,7 +36,7 @@ internal class Program {
                      WriteLine ("Invalid input. Please try again.");
                      continue;
                   }
-                  WriteLine ("Parsed value: " + value);
+                  WriteLine ($"Parsed value: {value}");
                }
          }
       }
