@@ -1,0 +1,152 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Training ~ A training program for new joinees at Metamation, Batch- July 2025.
+// Copyright (c) Metamation India.
+// ------------------------------------------------------------------
+// Program.cs
+// Program to implement a clone of double.TryParse method.
+// ------------------------------------------------------------------------------------------------
+using static System.Console;
+
+#region class Program -----------------------------------------------------------------------------
+/// <summary>Program class to test DoubleParser class implementation</summary>
+internal class Program {
+   static void Main () {
+      for (; ; ) {
+         WriteLine ("Enter [T] to run test case or any other key to continue: ");
+         switch (ReadKey (true).Key) {
+            case ConsoleKey.T:
+               var tData = new List<string> { "123", "-123", "123.45", "-123.45", "+123.45e45",
+                  "-123.45e-45", "123e-45", ".45e3", "123.", "4.e45", "34.4E3", "", "-12-3e3",
+                  "e24", "123+", ".e-", "-e+", "-+98", "-123.-1", "1..1", "8-e", "1e-1", "nan" };
+               bool pass = true;
+               foreach (var inp in tData) {
+                  DoubleParser.TryParse (inp, out double result1);
+                  double.TryParse (inp, out double result2);
+                  if (result1 == result2 || (double.IsNaN (result1) && double.IsNaN (result2))) continue;
+                  pass = false;
+                  break;
+               }
+               WriteLine ($"Test cases {(pass ? "passed" : "failed")}");
+               continue;
+            default:
+               for (; ; ) {
+                  Write ("Enter a string to parse: ");
+                  if (!DoubleParser.TryParse (ReadLine ()!, out double value)) {
+                     WriteLine ("Invalid input. Please try again.");
+                     continue;
+                  }
+                  WriteLine ($"Parsed value: {value}");
+               }
+         }
+      }
+   }
+}
+#endregion
+
+#region class ParseException ----------------------------------------------------------------------
+/// <summary>Class inherited from exception class with customized message</summary>
+class ParseException (string message) : Exception (message) { }
+#endregion
+
+#region class DoubleParser ------------------------------------------------------------------------
+/// <summary>Parser class to implement double parsing methods given a string</summary>
+static class DoubleParser {
+   #region Methods --------------------------------------------------
+   /// <summary>Tries to parse string value into double</summary>
+   public static bool TryParse (string input, out double result) {
+      if (input.ToLower () is "nan") { result = double.NaN; return true; }
+      result = 0.0;
+      if (string.IsNullOrWhiteSpace (input)) return false;
+      // Remove unwanted spaces
+      input = input.Trim ();
+      // Check for multiple signs
+      int count = 0;
+      while (count < input.Length && (input[count] == '+' || input[count] == '-')) {
+         count++;
+         if (count > 1) return false;
+      }
+      // Determine overall sign
+      bool isNegative = input.StartsWith ('-');
+      if (input.StartsWith ('+') || isNegative) input = input[1..];
+      // Split into base and exponent
+      int eIndex = input.IndexOfAny (['e', 'E']);
+      bool hasExp = eIndex >= 0;
+      string basePart = hasExp ? input[..eIndex] : input;
+      string expPart = hasExp ? input[(eIndex + 1)..] : "0";
+      try {
+         result = TryParseBase (basePart) * Math.Pow (10, TryParseExp (expPart)) * (isNegative ? -1 : 1);
+      } catch {
+         return false;
+      }
+      return true;
+   }
+   #endregion
+
+   #region Implementation -------------------------------------------
+   // Tries to parse string base value into double
+   static double TryParseBase (string str) {
+      if (EvaluateBase (str)) return sBase;
+      ThrowError ();
+      return 0;
+   }
+
+   // Tries to parse string exponent value into integer
+   static int TryParseExp (string str) {
+      if (EvaluateExp (str)) return sExp;
+      ThrowError ();
+      return 0;
+   }
+
+   // Throws not valid input exception 
+   static void ThrowError () => throw new ParseException ("Not a valid input!!");
+
+   // Evaluates the input string base value
+   static bool EvaluateBase (string basePart) {
+      if (string.IsNullOrEmpty (basePart)) return false;
+      bool hasDecimal = false;
+      double result = 0;
+      double decimalFactor = 0.1;
+      int i = 0;
+      if (basePart.StartsWith ('.')) { hasDecimal = true; i++; }
+      while (i < basePart.Length) {
+         char c = basePart[i];
+         if (c == '.') {
+            if (hasDecimal) return false;
+            hasDecimal = true;
+            i++;
+            continue;
+         }
+         if (c < '0' || c > '9') return false;
+         int digit = c - '0';
+         if (!hasDecimal) result = result * 10 + digit;
+         else { result += digit * decimalFactor; decimalFactor /= 10; }
+         i++;
+      }
+      sBase = result;
+      return true;
+   }
+
+   // Evaluates the input string exponent value
+   static bool EvaluateExp (string exp) {
+      if (string.IsNullOrEmpty (exp)) return false;
+      int i = 0;
+      bool isNegative = exp[i] == '-';
+      if (exp[i] == '+' || isNegative) i++;
+      if (i >= exp.Length) return false;
+      int result = 0;
+      while (i < exp.Length) {
+         char c = exp[i++];
+         if (c < '0' || c > '9') return false;
+         result = result * 10 + (c - '0');
+      }
+      sExp = isNegative ? -result : result;
+      return true;
+   }
+   #endregion
+
+   #region Private data ---------------------------------------------
+   static double sBase; // stores base value
+   static int sExp; // stores exponent value
+   #endregion
+}
+#endregion
