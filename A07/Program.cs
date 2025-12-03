@@ -21,9 +21,8 @@ internal class Program {
                bool pass = true;
                foreach (var inp in tData) {
                   DoubleParser.TryParse (inp, out double result1);
-                  if (inp is "nan" && double.IsNaN (result1)) continue;
                   double.TryParse (inp, out double result2);
-                  if (result1 == result2) continue;
+                  if (result1 == result2 || (double.IsNaN (result1) && double.IsNaN (result2))) continue;
                   pass = false;
                   break;
                }
