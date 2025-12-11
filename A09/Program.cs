@@ -13,38 +13,48 @@ class Program {
       var q = new MyQueue<int> ();
       foreach (int n in new List<int> { 10, 20, 30, 40 })
          q.Enqueue (n);
-      // 1. Checks if all elements are added
-      Assert (q.Count == 4, 1);
-      // 2. Checks if the queue is full
-      Assert (q.IsFull (), 2);
+      // Checks if all elements are added
+      Assert (q.Count == 4);
+      // Checks if the queue is full
+      Assert (q.IsFull);
       q.Enqueue (50);
-      // 3. Checks if the Capacity is increased
-      Assert (q.Capacity == 8, 3);
-      // 4. Checks if first element is removed
-      Assert (q.Dequeue () == 10, 4);
-      // 5. Checks count after removing element
-      Assert (q.Count == 4, 5);
+      // Checks if the Capacity is increased
+      Assert (q.Capacity == 8);
+      // Checks if first element is removed
+      Assert (q.Dequeue () == 10);
+      // Checks count after removing element
+      Assert (q.Count == 4);
       for (int i = 0; i < 4; i++) q.Dequeue ();
-      // 6. Checks if exception is thrown when queue is empty
+      // Checks if exception is thrown when queue is empty
       try {
          q.Dequeue ();
       } catch (Exception e) {
-         Assert (e.Message == "Queue is empty!", 6);
+         Assert (e.Message == "Queue is empty!");
       }
+      WriteLine ("Test cases passed");
 
       // Helper function to assert test cases
-      void Assert (bool condition, int caseId)
-         => WriteLine ($"Test case {caseId} {(condition ? "passed" : "failed")}");
+      void Assert (bool condition) {
+         if (!condition) { WriteLine ("Test cases failed"); Environment.Exit (0); }
+      }
    }
 }
 #endregion
 
 #region Class MyQueue<T> --------------------------------------------------------------------------
 class MyQueue<T> {
+   #region Properties -----------------------------------------------
+   public bool IsEmpty => mCount == 0;
+   public bool IsFull => mCount == Capacity;
+   public int Capacity => mArray.Length;
+   public int Count => mCount;
+   int mCount;
+   #endregion
+
    #region Methods --------------------------------------------------
    /// <summary>Adds an element to the end of queue</summary>
    public void Enqueue (T element) {
-      if (IsFull ()) {
+      if (IsFull) {
          mEnd = Capacity;
          Array.Resize (ref mArray, Capacity * 2);
       }
@@ -55,33 +65,19 @@ class MyQueue<T> {
 
    /// <summary>Removes and returns the first element</summary>
    public T Dequeue () {
-      if (IsEmpty ()) throw new InvalidOperationException ("Queue is empty!");
+      if (IsEmpty) throw new InvalidOperationException ("Queue is empty!");
       var element = mArray[mStart];
       mStart = (mStart + 1) % Capacity;
+      var temp = new T[Capacity];
+      for (int i = mStart; i < mEnd; i++) temp[i] = mArray[i];
+      mArray = temp;
       mCount--;
       return element;
    }
-
-   /// <summary>Returns whether the queue is empty</summary>
-   public bool IsEmpty () => mCount == 0;
-
-   /// <summary>Returns whether the queue is full</summary>
-   public bool IsFull () => mCount == Capacity;
-   #endregion
-
-   #region Properties -----------------------------------------------
-   public int Capacity {
-      get { mCapacity = mArray.Length; return mCapacity; }
-   }
-   int mCapacity;
-
-   public int Count => mCount;
-   int mCount;
    #endregion
 
    #region Private data ---------------------------------------------
-   int mStart;
-   int mEnd;
+   int mStart, mEnd;
    T[] mArray = new T[4];
    #endregion
 }
