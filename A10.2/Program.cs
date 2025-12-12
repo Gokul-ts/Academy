@@ -34,6 +34,15 @@ internal class Program {
 /// <summary>Represents a double sided queue with first-in, first-out, last-in and last-out
 /// collection of objects</summary>
 class DQueue<T> () {
+   #region Properties -----------------------------------------------
+   public int Capacity => mArray.Length;
+
+   public int Count => mCount;
+
+   public bool IsFull => Capacity == mCount;
+
+   public bool IsEmpty => mCount == 0;
+   #endregion
 
    #region Methods --------------------------------------------------
    /// <summary>Adds an item to the front of DQueue</summary>
@@ -56,6 +65,7 @@ class DQueue<T> () {
    public T DeqFront () {
       if (IsEmpty) throw new InvalidOperationException ("Queue is empty!");
       var value = mArray[mFront];
+      mArray[mFront] = default!;
       mFront = (mFront + 1) % Capacity;
       mCount--;
       return value;
@@ -65,8 +75,10 @@ class DQueue<T> () {
    public T DeqRear () {
       if (IsEmpty) throw new InvalidOperationException ("Queue is empty!");
       mRear = (mRear - 1 + Capacity) % Capacity;
+      var value = mArray[mRear];
+      mArray[mRear] = default!;
       mCount--;
-      return mArray[mRear];
+      return value;
    }
    #endregion
 
@@ -74,29 +86,16 @@ class DQueue<T> () {
    // Resizes the queue with new capacity
    void Resize () {
       T[] temp = new T[Capacity * 2];
-      for (int i = 0; i < Count; i++)
+      for (int i = 0; i < mCount; i++)
          temp[i] = mArray[(mFront + i) % Capacity];
       (mArray, mFront, mRear) = (temp, 0, mCount);
       WriteLine ($"\nCapacity increased to {Capacity}");
    }
    #endregion
 
-   #region Properties -----------------------------------------------
-   public int Capacity { get { mCapacity = mArray.Length; return mCapacity; } }
-   int mCapacity;
-
-   public int Count => mCount;
-   int mCount;
-
-   public bool IsFull => Capacity == mCount;
-
-   public bool IsEmpty => mCount == 0;
-   #endregion
-
    #region Private data ---------------------------------------------
    T[] mArray = new T[4];
-   int mFront;
-   int mRear;
+   int mFront, mRear, mCount;
    #endregion
 }
 #endregion
