@@ -20,7 +20,8 @@ class Program {
       Assert (q.Dequeue () == 10); // Checks if first element is removed
       Assert (q.Count == 4);       // Checks count after removing element
       for (int i = 0; i < 4; i++) q.Dequeue ();
-      try {                        // Checks if exception is thrown when queue is empty
+      // Checks if exception is thrown when queue is empty
+      try {
          q.Dequeue ();
       } catch (Exception e) {
          Assert (e.Message == "Queue is empty!");
@@ -42,7 +43,6 @@ class MyQueue<T> {
    public bool IsFull => mCount == Capacity;
    public int Capacity => mArray.Length;
    public int Count => mCount;
-   int mCount;
    #endregion
 
    #region Methods --------------------------------------------------
@@ -70,7 +70,7 @@ class MyQueue<T> {
    #endregion
 
    #region Private data ---------------------------------------------
-   int mStart, mEnd;
+   int mStart, mEnd, mCount;
    T[] mArray = new T[4];
    #endregion
 }
