@@ -13,20 +13,14 @@ class Program {
       var q = new MyQueue<int> ();
       foreach (int n in new List<int> { 10, 20, 30, 40 })
          q.Enqueue (n);
-      // Checks if all elements are added
-      Assert (q.Count == 4);
-      // Checks if the queue is full
-      Assert (q.IsFull);
+      Assert (q.Count == 4);       // Checks if all elements are added
+      Assert (q.IsFull);           // Checks if the queue is full
       q.Enqueue (50);
-      // Checks if the Capacity is increased
-      Assert (q.Capacity == 8);
-      // Checks if first element is removed
-      Assert (q.Dequeue () == 10);
-      // Checks count after removing element
-      Assert (q.Count == 4);
+      Assert (q.Capacity == 8);    // Checks if the Capacity is increased
+      Assert (q.Dequeue () == 10); // Checks if first element is removed
+      Assert (q.Count == 4);       // Checks count after removing element
       for (int i = 0; i < 4; i++) q.Dequeue ();
-      // Checks if exception is thrown when queue is empty
-      try {
+      try {                        // Checks if exception is thrown when queue is empty
          q.Dequeue ();
       } catch (Exception e) {
          Assert (e.Message == "Queue is empty!");
@@ -55,8 +49,9 @@ class MyQueue<T> {
    /// <summary>Adds an element to the end of queue</summary>
    public void Enqueue (T element) {
       if (IsFull) {
-         mEnd = Capacity;
-         Array.Resize (ref mArray, Capacity * 2);
+         var temp = new T[Capacity * 2];
+         for (int i = 0; i < mCount; i++) temp[i] = mArray[(mStart + i) % Capacity];
+         (mStart, mEnd, mArray) = (0, mCount, temp);
       }
       mArray[mEnd] = element;
       mEnd = (mEnd + 1) % Capacity;
@@ -67,10 +62,8 @@ class MyQueue<T> {
    public T Dequeue () {
       if (IsEmpty) throw new InvalidOperationException ("Queue is empty!");
       var element = mArray[mStart];
+      mArray[mStart] = default!;
       mStart = (mStart + 1) % Capacity;
-      var temp = new T[Capacity];
-      for (int i = mStart; i < mEnd; i++) temp[i] = mArray[i];
-      mArray = temp;
       mCount--;
       return element;
    }
