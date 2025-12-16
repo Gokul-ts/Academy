@@ -35,34 +35,44 @@ internal class Program {
 /// drive letter, folder name and filename with extension. Refer state_transition_diag.png</summary>
 static class FileParser {
    #region Methods --------------------------------------------------
-   /// <summary>Parses valid input string and returns the output in a tuple<summary>
+   /// <summary>Parses valid input string and returns the output in a tuple or throws an
+   /// exception if any<summary>
    public static (string, string, string, string) Parse (string input) {
       var (drive, folder, file, ext) = ("", "", "", "");
-      EState s = A;
-      foreach (var ch in input.Trim ().ToUpper () + '~') {
-         s = (s, ch) switch {
-            (A, >= 'A' and <= 'Z') => B,
-            (B, ':') => C,
-            (C or E, '\\') => D,
-            (D or E, >= 'A' and <= 'Z') => E,
-            (E, '.') => F,
-            (F or G, >= 'A' and <= 'Z') => G,
-            (G, '~') => H,
-            _ => Z,
+      EState s = A; int mN = 0;
+      input = input.Trim ().ToUpper () + '~';
+      while (mN < input.Length) {
+         Action step = (s, input[mN++]) switch {
+            (A, var c) when c is >= 'A' and <= 'Z' => () => { s = B; drive += c; },
+            (B, ':') => () => { s = C; },
+            (C, '\\') => () => { s = D; },
+            (D, var c) when c is >= 'A' and <= 'Z' => () => { s = C; folder += Extract (); },
+            (C, '.') => () => { s = E; },
+            (E, var c) when c is >= 'A' and <= 'Z' => () => {
+               s = F; file = folder.Split ('\\').Last ();
+               folder = folder[..^file.Length];
+               ext += Extract ();
+            },
+            (F, '~') => () => { s = G; },
+            _ => () => { s = Z; },
          };
-         if (s is B) drive = ch + "";
-         if (s is E or D) folder += ch;
-         if (s is F) {
-            file = folder.Split ('\\').Last ();
-            folder = folder[..^file.Length];
-         }
-         if (s is F or G) ext += ch;
+         step ();
+         if (s is Z) throw new ArgumentException ("Not a valid file path!!");
       }
-      if (s is Z) throw new ArgumentException ("Not a valid file path!!");
       return (drive, folder, file, ext);
+
+      // Helper function to extract letters
+      string Extract () {
+         int start = mN - 2;
+         while (mN < input.Length) {
+            if (input[mN++] is >= 'A' and <= 'Z') continue;
+            mN--; break;
+         }
+         return input[start..mN];
+      }
    }
    #endregion
 }
-// Enums holding various states of FSM
-enum EState { A, B, C, D, E, F, G, H, Z }
+// Enums holding various states of FileParser
+enum EState { A, B, C, D, E, F, G, Z }
 #endregion
