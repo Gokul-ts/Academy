@@ -24,7 +24,7 @@ internal class Program {
          }
    }
 
-   #region Constants ---------------------------------------------
+   #region Constants ------------------------------------------------
    const double K = 0.25;
    #endregion
 }
