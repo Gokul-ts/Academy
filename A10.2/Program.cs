@@ -24,15 +24,14 @@ internal class Program {
          }
    }
 
-   #region Private data ---------------------------------------------
+   #region Constants ---------------------------------------------
    const double K = 0.25;
    #endregion
 }
 #endregion
 
-#region class DQueue<T> --------------------------------------------------------------------------
-/// <summary>Represents a double sided queue with FI-FO, LI-LO, FI-LO and LI-FO collection of 
-/// objects</summary>
+#region class DQueue<T> ---------------------------------------------------------------------------
+/// <summary>Represents a double sided queue with FI-FO, LI-LO, FI-LO and LI-FO collection of objects</summary>
 class DQueue<T> {
    #region Properties -----------------------------------------------
    public int Capacity => mArray.Length;
@@ -83,12 +82,13 @@ class DQueue<T> {
    #endregion
 
    #region Implementation -------------------------------------------
-   // Resizes the queue with new capacity
+   // Resizes the queue with double the previous capacity
    void Resize () {
       T[] temp = new T[Capacity * 2];
       for (int i = 0; i < mCount; i++)
          temp[i] = mArray[(mFront + i) % Capacity];
       (mArray, mFront, mRear) = (temp, 0, mCount);
+      WriteLine ($"\nCapacity increased to {Capacity}");
    }
    #endregion
 
