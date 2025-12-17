@@ -14,13 +14,13 @@ internal class Program {
       var (q, r, n) = (new DQueue<int> (), new Random (), 0);
       for (int i = 0; i < 100; i++)
          if (r.NextDouble () < K) {
-            if (!q.IsEmpty) WriteLine (r.NextDouble () < K ?
-               $"RemoveFront:{q.DeqFront (),3}" : $"RemoveRear:{q.DeqRear (),4}");
+            if (!q.IsEmpty) WriteLine (r.NextDouble () < K ? $"RemoveFront:{q.DeqFront (),3}"
+                                                           : $"RemoveRear :{q.DeqRear (),3}");
          } else {
             bool isFront = r.NextDouble () < K;
             if (isFront) q.EnqFront (++n);
             else q.EnqRear (++n);
-            WriteLine (isFront ? $"AddFront:{n,6}" : $"AddRear:{n,7}");
+            WriteLine (isFront ? $"AddFront   :{n,3}" : $"AddRear    :{n,3}");
          }
    }
 
@@ -31,9 +31,9 @@ internal class Program {
 #endregion
 
 #region class DQueue<T> --------------------------------------------------------------------------
-/// <summary>Represents a double sided queue with first-in, first-out, last-in and last-out
-/// collection of objects</summary>
-class DQueue<T> () {
+/// <summary>Represents a double sided queue with FI-FO, LI-LO, FI-LO and LI-FO collection of 
+/// objects</summary>
+class DQueue<T> {
    #region Properties -----------------------------------------------
    public int Capacity => mArray.Length;
 
@@ -89,7 +89,6 @@ class DQueue<T> () {
       for (int i = 0; i < mCount; i++)
          temp[i] = mArray[(mFront + i) % Capacity];
       (mArray, mFront, mRear) = (temp, 0, mCount);
-      WriteLine ($"\nCapacity increased to {Capacity}");
    }
    #endregion
 
