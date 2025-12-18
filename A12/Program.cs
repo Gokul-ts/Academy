@@ -7,8 +7,8 @@
 // ------------------------------------------------------------------------------------------------
 using System.Text;
 using static System.Console;
-using static System.ConsoleKey;
 using static System.ConsoleColor;
+using static System.ConsoleKey;
 
 #region Class program -----------------------------------------------------------------------------
 internal class Program {
@@ -20,7 +20,7 @@ internal class Program {
 /// <summary>Class to implement the wordle game</summary>
 class Wordle {
    #region Constructor ----------------------------------------------
-   public Wordle () => this.mWord = this.mSeed = string.Empty;
+   public Wordle () => mWord = mSeed = string.Empty;
    #endregion
 
    #region Methods --------------------------------------------------
@@ -54,26 +54,23 @@ class Wordle {
    // Displays the interface to the console
    void Display () {
       Clear ();
-      int i = 0;
-      foreach (var (ch, type) in inputs) {
-         if (i % 5 == 0) Write ("\n\t");
-         if (i < mColorCode) ForegroundColor = type switch {
-            1 => Green,
-            2 => Blue,
-            _ => DarkGray,
-         };
-         Write ($"{ch} ");
-         ResetColor ();
-         i++;
+      int total = 30, alpha = 26, rowSize = 7;
+      for (int i = 0; i < total; i++) {
+         if (i % LEN == 0) Write ("\n\t");
+         if (i < inputs.Count) {
+            var (ch, type) = (inputs[i].Item1, inputs[i].Item2);
+            if (i < mColored) ForegroundColor = type switch {
+               1 => Green,
+               2 => Blue,
+               _ => DarkGray,
+            };
+            Write ($"{ch} ");
+            ResetColor ();
+         } else Write ($"{(i == mPos ? '\u25cc' : '.')} ");
       }
-      while (i < 30) {
-         if (i % 5 == 0) Write ("\n\t");
-         Write ($"{(i == mPos ? '\u25cc' : '.')} ");
-         i++;
-      }
-      WriteLine ($"\n{new string ('\u2500', 25)}\n");
-      var temp = inputs.Take (mColorCode);
-      for (int j = 1; j <= 26; j++) {
+      Line ();
+      var temp = inputs.Take (mColored);
+      for (int j = 1; j <= alpha; j++) {
          char c = (char)(j + 64);
          ForegroundColor = temp switch {
             _ when temp.Contains ((c, 1)) => Green,
@@ -82,58 +79,77 @@ class Wordle {
             _ => White
          };
          Write ($"{c}   ");
-         if (j % 7 == 0) WriteLine ();
+         if (j % rowSize == 0) WriteLine ();
          ResetColor ();
       }
    }
+
+   // Draws a separation line
+   void Line () => WriteLine ($"\n{new string ('\u2500', 25)}\n");
 
    // Updates the game state
    void UpdateGame (ConsoleKeyInfo info) {
       char ch = char.ToUpper (info.KeyChar);
-      if (ch is >= 'A' and <= 'Z' && mWord.Length != 5) {
-         int status = 3;
-         int idx = mSeed.IndexOf (ch);
-         if (idx >= 0) status = (mPos % 5 == idx) ? 1 : 2;
-         inputs.Add ((ch, status));
+      if (ch is >= 'A' and <= 'Z' && mWord.Length != LEN) {
+         inputs.Add ((ch, 4));
          mWord += ch;
          mPos++;
+         return;
       }
-      if (info.Key is Enter && mWord.Length == 5) {
+      if (info.Key is Enter && mWord.Length == LEN) {
          if (mValidWords.Contains (mWord)) {
-            mTries++;
-            mColorCode += 5;
-            if (mWord == mSeed) { mGameOver = mFound = true; return; }
-            mWord = string.Empty;
-            if (mTries == 6) { mGameOver = true; return; }
+            Restructure ();
+            mColored += LEN;
+            mFound = mWord == mSeed;
+            mGameOver = mFound || mColored / LEN == 6;
+            if (mGameOver) return;
          } else {
             PrintMsg (mWord);
-            mWord = string.Empty;
-            inputs.RemoveRange (mPos - 5, 5);
-            mPos -= 5;
+            inputs.RemoveRange (mPos - LEN, LEN);
+            mPos -= LEN;
          }
+         mWord = string.Empty;
+         return;
       }
-      if (info.Key is Backspace or Delete && mWord != "") {
-         mPos--;
-         inputs.RemoveRange (mPos, 1);
-         mWord = (mWord.Length == 1) ? string.Empty : mWord[..(mPos % 5)];
+      if (info.Key is Backspace or Delete && mWord.Length > 0) {
+         inputs.RemoveRange (--mPos, 1);
+         mWord = mWord[..(mPos % LEN)];
+         return;
       }
+   }
+
+   // Returns the type of character
+   void Restructure () {
+      var rem = new Dictionary<char, int> ();
+      var result = new int[LEN];
+      for (int i = 0; i < LEN; i++)
+         if (mWord[i] == mSeed[i]) result[i] = 1;
+         else rem[mSeed[i]] = rem.GetValueOrDefault (mSeed[i]) + 1;
+      for (int i = 0; i < LEN; i++)
+         if (result[i] == default)
+            if (rem.GetValueOrDefault (mWord[i]) > 0) {
+               result[i] = 2;
+               rem[mWord[i]]--;
+            } else result[i] = 3;
+      inputs.RemoveRange (mPos - LEN, LEN);
+      inputs.AddRange (mWord.Select ((c, i) => (c, result[i])));
    }
 
    // Prints result to the console
    void PrintResult () {
-      Write ($"\n\n{new string ('\u2500', 25)}\n");
+      Line ();
       if (mFound) {
          ForegroundColor = Green;
-         Write ($"\nYou found the word in {mTries} tries\n");
+         WriteLine ($"You found the word in {mColored / LEN} tries");
          ResetColor ();
-      } else Write ($"\nSorry - the word was {mSeed}\n");
+      } else WriteLine ($"Sorry - the word was {mSeed}");
    }
 
    // Prints a message to the console
    void PrintMsg (string s) {
-      Write ($"\n\n{new string ('\u2500', 25)}\n");
+      Line ();
       ForegroundColor = Yellow;
-      WriteLine ($"\n   {s} is not a word\n");
+      WriteLine ($"   {s} is not a word");
       ResetColor ();
       WriteLine ("Enter any key to continue");
       ReadKey (true);
@@ -142,10 +158,14 @@ class Wordle {
 
    #region Private data ---------------------------------------------
    List<(char, int)> inputs = [];
-   int mPos, mTries, mColorCode;
+   int mPos, mColored;
    bool mGameOver, mFound;
    string mSeed, mWord;
    string[] mValidWords = [];
+   #endregion
+
+   #region Constants ------------------------------------------------
+   const int LEN = 5;
    #endregion
 }
 #endregion
