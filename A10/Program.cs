@@ -46,15 +46,16 @@ static class FileParser {
             (A, var c) when c is >= 'A' and <= 'Z' => () => { s = B; drive += c; },
             (B, ':') => () => { s = C; },
             (C, '\\') => () => { s = D; },
-            (D, var c) when c is >= 'A' and <= 'Z' => () => { s = C; folder += Extract (); },
-            (C, '.') => () => { s = E; },
-            (E, var c) when c is >= 'A' and <= 'Z' => () => {
-               s = F; file = folder.Split ('\\').Last ();
-               folder = folder[..^file.Length];
+            (D or F, var c) when c is >= 'A' and <= 'Z' => () => { s = s is D ? E : G; folder += Extract (); },
+            (E or G, '\\') => () => { s = F; },
+            (G, '.') => () => { s = H; },
+            (H, var c) when c is >= 'A' and <= 'Z' => () => {
+               s = I; file = folder.Split ('\\').Last ();
+               folder = folder[..^file.Length].Trim ('\\');
                ext += Extract ();
             },
-            (F, '~') => () => { s = G; },
-            _ => () => { s = Z; },
+            (I, '~') => () => { s = J; },
+            _ => () => { s = Z; }
          };
          step ();
          if (s is Z) throw new ArgumentException ("Not a valid file path!!");
@@ -74,5 +75,5 @@ static class FileParser {
    #endregion
 }
 // Enums holding various states of FileParser
-enum EState { A, B, C, D, E, F, G, Z }
+enum EState { A, B, C, D, E, F, G, H, I, J, Z }
 #endregion
