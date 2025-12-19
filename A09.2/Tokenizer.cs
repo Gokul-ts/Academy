@@ -16,12 +16,15 @@ class Tokenizer {
          char ch = char.ToLower (mText[mN++]);
          switch (ch) {
             case ' ' or '\t': continue;
-            case (>= '0' and <= '9') or '.': return GetNumber ();
+            case (>= '0' and <= '9') or '.':
+               return (PrevToken is TLiteral)
+                  ? new TError ("Invalid operation") : GetNumber ();
             case '(' or ')': return new TPunctuation (ch);
-            case '+' or '-' or '*' or '/' or '^' or '=': {
-                  if (PrevToken is null or TOperator) return new TOpUnary (mEval, ch);
-                  return new TOpArithmetic (mEval, ch);
-               }
+            case '+' or '-':
+               return (PrevToken is null or TOperator or TPunctuation { Punct: '(' })
+                  ? new TOpUnary (mEval, ch)
+                  : new TOpArithmetic (mEval, ch);
+            case '*' or '/' or '^' or '=': return new TOpArithmetic (mEval, ch);
             case >= 'a' and <= 'z': return GetIdentifier ();
             default: return new TError ($"Unknown symbol: {ch}");
          }

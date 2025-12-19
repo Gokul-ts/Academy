@@ -14,7 +14,8 @@ class Evaluator {
    /// <summary>Evaluates input tokens and returns the result</summary>
    public double Evaluate (string text) {
       if (string.IsNullOrWhiteSpace (text)) throw new EvalException ("Enter a string!");
-      List<Token> tokens = new ();
+      Reset ();
+      List<Token> tokens = [];
       var tokenizer = new Tokenizer (this, text);
       for (; ; ) {
          var token = tokenizer.Next ();
@@ -30,10 +31,14 @@ class Evaluator {
          tokens.RemoveRange (0, 2);
       }
       foreach (var t in tokens) Process (t);
-      while (mOperators.Count > 0) ApplyOperator ();
+      while (mOperators.Count > 0 && mOperands.Count > 0) ApplyOperator ();
+      if (BasePriority != 0) throw new EvalException ("Mismatched Parenthesis");
+      if (mOperands.Count == 0) throw new EvalException ("Too few operands");
+      if (mOperators.Count > 0) throw new EvalException ("Excessive use of operators");
+      if (mOperands.Count != 1) throw new EvalException ("Excessive use of operands");
       double f = mOperands.Pop ();
       if (tVariable != null) mVars[tVariable.Name] = f;
-      return f;
+      return Math.Round (f, 10);
    }
 
    /// <summary>Returns the value of the variable</summary>
@@ -51,7 +56,8 @@ class Evaluator {
             mOperands.Push (num.Value);
             break;
          case TOperator op:
-            while (mOperators.Count > 0 && mOperators.Peek ().Priority > op.Priority)
+            op.Priority += BasePriority;
+            while (mOperators.Count > 0 && mOperators.Peek ().Priority >= op.Priority && mOperands.Count > 0)
                ApplyOperator ();
             mOperators.Push (op);
             break;
@@ -67,17 +73,19 @@ class Evaluator {
    void ApplyOperator () {
       var op = mOperators.Pop ();
       var f1 = mOperands.Pop ();
+      if (op is TOpUnary unary) mOperands.Push (unary.Evaluate (f1));
       if (op is TOpFunction func) mOperands.Push (func.Evaluate (f1));
       else if (op is TOpArithmetic arith) {
+         if (mOperands.Count == 0) throw new EvalException ("Excessive use of operators");
          var f2 = mOperands.Pop ();
-         if (mOperators.Count > 0 && mOperators.Peek () is TOpArithmetic a && a.Op is '-') {
-            f2 = a.Evaluate (f2);
-            mOperators.Pop ();
-            mOperators.Push (new TOpArithmetic (this, '+'));
-         }
          mOperands.Push (arith.Evaluate (f2, f1));
-      } else if (op is TOpUnary unary)
-         mOperands.Push (unary.Evaluate (f1));
+      }
+   }
+
+   void Reset () {
+      mOperands.Clear ();
+      mOperators.Clear ();
+      BasePriority = 0;
    }
    #endregion
 

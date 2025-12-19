@@ -60,7 +60,7 @@ abstract class TOperator : Token {
    #endregion
 
    #region Properties -----------------------------------------------
-   public abstract int Priority { get; }
+   public abstract int Priority { get; set; }
    #endregion
 
    #region Private data ---------------------------------------------
@@ -79,7 +79,8 @@ class TOpArithmetic : TOperator {
    #region Properties -----------------------------------------------
    public char Op { get; private set; }
    public override string ToString () => $"op:{Op}:{Priority}";
-   public override int Priority => sPriority[Op] + mEval.BasePriority;
+   public override int Priority { get { return sPriority[Op] + mPriority; } set { mPriority = value; } }
+   int mPriority;
    #endregion
 
    #region Private data ---------------------------------------------
@@ -120,7 +121,8 @@ class TOpFunction : TOperator {
    #region Properties -----------------------------------------------
    public string Func { get; private set; }
    public override string ToString () => $"func:{Func}:{Priority}";
-   public override int Priority => 4 + mEval.BasePriority;
+   public override int Priority { get { return 4 + mPriority; } set { mPriority = value; } }
+   int mPriority;
    #endregion
 
    #region Methods --------------------------------------------------
@@ -155,7 +157,8 @@ class TOpUnary : TOperator {
    #region Properties -----------------------------------------------
    public override string ToString () => $"op:{Op}:{Priority}";
    public char Op { get; private set; }
-   public override int Priority => 4 + mEval.BasePriority;
+   public override int Priority { get { return 5 + mPriority; } set { mPriority = value; } }
+   int mPriority;
    #endregion
 
    #region Methods --------------------------------------------------
