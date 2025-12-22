@@ -44,8 +44,9 @@ class Wordle {
    void Initialize () {
       try {
          var (seedWords, valWords) = (File.ReadLines (@"data\puzzle.txt"), File.ReadLines (@"data\dict.txt"));
+         int max = seedWords.Count () - 1;
          if (seedWords != null && valWords != null)
-            (mSeed, mValidWords) = (seedWords.ToArray ()[new Random ().Next (0, 597)], [.. valWords]);
+            (mSeed, mValidWords) = (seedWords.ToArray ()[new Random ().Next (0, max)], [.. valWords]);
       } catch (Exception ex) {
          Write (ex.Message); ReadKey (true);
       }
@@ -54,11 +55,11 @@ class Wordle {
    // Displays the interface to the console
    void Display () {
       Clear ();
-      int total = 30, alpha = 26, rowSize = 7;
+      int total = 6 * LEN, alpha = 26, rowSize = 7;
       for (int i = 0; i < total; i++) {
          if (i % LEN == 0) Write ("\n\t");
-         if (i < inputs.Count) {
-            var (ch, type) = (inputs[i].Item1, inputs[i].Item2);
+         if (i < mInputs.Count) {
+            var (ch, type) = mInputs[i];
             if (i < mColored) ForegroundColor = type switch {
                1 => Green,
                2 => Blue,
@@ -69,7 +70,7 @@ class Wordle {
          } else Write ($"{(i == mPos ? '\u25cc' : '.')} ");
       }
       Line ();
-      var temp = inputs.Take (mColored);
+      var temp = mInputs.Take (mColored);
       for (int j = 1; j <= alpha; j++) {
          char c = (char)(j + 64);
          ForegroundColor = temp switch {
@@ -91,7 +92,7 @@ class Wordle {
    void UpdateGame (ConsoleKeyInfo info) {
       char ch = char.ToUpper (info.KeyChar);
       if (ch is >= 'A' and <= 'Z' && mWord.Length != LEN) {
-         inputs.Add ((ch, 4));
+         mInputs.Add ((ch, 4));
          mWord += ch;
          mPos++;
          return;
@@ -105,14 +106,14 @@ class Wordle {
             if (mGameOver) return;
          } else {
             PrintMsg (mWord);
-            inputs.RemoveRange (mPos - LEN, LEN);
+            mInputs.RemoveRange (mPos - LEN, LEN);
             mPos -= LEN;
          }
          mWord = string.Empty;
          return;
       }
       if (info.Key is Backspace or Delete && mWord.Length > 0) {
-         inputs.RemoveRange (--mPos, 1);
+         mInputs.RemoveAt (--mPos);
          mWord = mWord[..(mPos % LEN)];
          return;
       }
@@ -131,8 +132,8 @@ class Wordle {
                result[i] = 2;
                rem[mWord[i]]--;
             } else result[i] = 3;
-      inputs.RemoveRange (mPos - LEN, LEN);
-      inputs.AddRange (mWord.Select ((c, i) => (c, result[i])));
+      mInputs.RemoveRange (mPos - LEN, LEN);
+      mInputs.AddRange (mWord.Select ((c, i) => (c, result[i])));
    }
 
    // Prints result to the console
@@ -157,7 +158,7 @@ class Wordle {
    #endregion
 
    #region Private data ---------------------------------------------
-   List<(char, int)> inputs = [];
+   List<(char, int)> mInputs = [];
    int mPos, mColored;
    bool mGameOver, mFound;
    string mSeed, mWord;
