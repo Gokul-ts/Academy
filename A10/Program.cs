@@ -35,23 +35,24 @@ internal class Program {
 /// drive letter, folder name and filename with extension. Refer state_transition_diag.png</summary>
 static class FileParser {
    #region Methods --------------------------------------------------
-   /// <summary>Parses valid input string and returns the output in a tuple or throws an
-   /// exception if any<summary>
+   /// <summary>Parses valid input string and returns the output in a tuple or throws an exception if any</summary>
    public static (string, string, string, string) Parse (string input) {
       var (drive, folder, file, ext) = ("", "", "", "");
-      EState s = A; int mN = 0;
+      EState s = A; int idx = 0;
       input = input.Trim ().ToUpper () + '~';
-      while (mN < input.Length) {
-         Action step = (s, input[mN++]) switch {
-            (A, var c) when c is >= 'A' and <= 'Z' => () => { s = B; drive += c; },
+      while (idx < input.Length) {
+         char ch = input[idx++];
+         bool isAlphabet = ch is >= 'A' and <= 'Z';
+         Action step = (s, ch) switch {
+            (A, _) when isAlphabet => () => { s = B; drive += ch; },
             (B, ':') => () => { s = C; },
             (C, '\\') => () => { s = D; },
-            (D or F, var c) when c is >= 'A' and <= 'Z' => () => { s = s is D ? E : G; folder += Extract (); },
+            (D or F, _) when isAlphabet => () => { s = s is D ? E : G; folder += Extract (); },
             (E or G, '\\') => () => { s = F; },
             (G, '.') => () => { s = H; },
-            (H, var c) when c is >= 'A' and <= 'Z' => () => {
+            (H, _) when isAlphabet => () => {
                s = I; file = folder.Split ('\\').Last ();
-               folder = folder[..^file.Length].Trim ('\\');
+               folder = folder[..^(file.Length + 1)];
                ext += Extract ();
             },
             (I, '~') => () => { s = J; },
@@ -64,16 +65,19 @@ static class FileParser {
 
       // Helper function to extract letters
       string Extract () {
-         int start = mN - 2;
-         while (mN < input.Length) {
-            if (input[mN++] is >= 'A' and <= 'Z') continue;
-            mN--; break;
+         int start = idx - (folder is "" ? 1 : 2);
+         while (idx < input.Length) {
+            if (input[idx++] is >= 'A' and <= 'Z') continue;
+            idx--; break;
          }
-         return input[start..mN];
+         return input[start..idx];
       }
    }
    #endregion
 }
+#endregion
+
+#region Enum
 // Enums holding various states of FileParser
 enum EState { A, B, C, D, E, F, G, H, I, J, Z }
 #endregion
