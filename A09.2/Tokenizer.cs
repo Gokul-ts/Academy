@@ -29,7 +29,7 @@ class Tokenizer {
             default: return new TError ($"Unknown symbol: {ch}");
          }
       }
-      return new TEnd ();
+      return PrevToken is TNumber or TPunctuation { Punct: ')' } ? new TEnd () : new TError ("Invalid operation");
    }
    #endregion
 

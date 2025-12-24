@@ -31,7 +31,7 @@ class Program {
       { "exp 1-2", .7182818285 }, { "exp(2-1)", 2.7182818285 }, { "exp -1", 0.3678794412 },
       { "sqrt -100", double.NaN }, { "log(-10+5)", double.NaN }, { "sin(sqrt-1)", double.NaN },
       { "sqrt asin-1", double.NaN }, { "3 + * 5", 0 }, { "(4 + 6", 0 }, { "2 + abc", 0 }, { "6 *", 0 },
-      { "3 + 2 *", 0 }, { "5 * (3 + 2))", 0 }, { "()", 0 }, { "(", 0 }, { "1 2 +-", 0 } };
+      { "3 + 2 *", 0 }, { "5 * (3 + 2))", 0 }, { "()", 0 }, { "(", 0 }, { "1 2 +-", 0 }, { "1(2)*", 0 } };
       foreach (var (text, output) in validExp) {
          WriteLine ($"Input    : {text}");
          try {
