@@ -12,25 +12,21 @@ using static System.ConsoleKey;
 
 #region Class program -----------------------------------------------------------------------------
 internal class Program {
-   static void Main () => new Wordle ().Run ();
+   static void Main () => Wordle.Run ();
 }
 #endregion
 
 #region Class Wordle ------------------------------------------------------------------------------
 /// <summary>Class to implement the wordle game</summary>
-class Wordle {
-   #region Constructor ----------------------------------------------
-   public Wordle () => mWord = mSeed = string.Empty;
-   #endregion
-
+static class Wordle {
    #region Methods --------------------------------------------------
    /// <summary>Runs the wordle game</summary>
-   public void Run () {
+   public static void Run () {
       OutputEncoding = Encoding.UTF8;
       CursorVisible = false;
       Initialize ();
       Display ();
-      while (!mGameOver) {
+      while (!sGameOver) {
          ConsoleKeyInfo key = ReadKey (true);
          UpdateGame (key);
          Display ();
@@ -41,36 +37,36 @@ class Wordle {
 
    #region Implementation -------------------------------------------
    // Initializes the words for seed and valid words
-   void Initialize () {
+   static void Initialize () {
       try {
          var (seedWords, valWords) = (File.ReadLines (@"data\puzzle.txt"), File.ReadLines (@"data\dict.txt"));
          int max = seedWords.Count () - 1;
          if (seedWords != null && valWords != null)
-            (mSeed, mValidWords) = (seedWords.ToArray ()[new Random ().Next (0, max)], [.. valWords]);
+            (sSeed, sValidWords) = (seedWords.ToArray ()[new Random ().Next (0, max)], [.. valWords]);
       } catch (Exception ex) {
          Write (ex.Message); ReadKey (true);
       }
    }
 
    // Displays the interface to the console
-   void Display () {
+   static void Display () {
       Clear ();
       int total = 6 * LEN, alpha = 26, rowSize = 7;
       for (int i = 0; i < total; i++) {
          if (i % LEN == 0) Write ("\n\t");
-         if (i < mInputs.Count) {
-            var (ch, type) = mInputs[i];
-            if (i < mColored) ForegroundColor = type switch {
+         if (i < sInputs.Count) {
+            var (ch, type) = sInputs[i];
+            if (i < sColored) ForegroundColor = type switch {
                1 => Green,
                2 => Blue,
                _ => DarkGray,
             };
             Write ($"{ch} ");
             ResetColor ();
-         } else Write ($"{(i == mPos ? '\u25cc' : '.')} ");
+         } else Write ($"{(i == sPos ? '\u25cc' : '.')} ");
       }
       Line ();
-      var temp = mInputs.Take (mColored);
+      var temp = sInputs.Take (sColored);
       for (int j = 1; j <= alpha; j++) {
          char c = (char)(j + 64);
          ForegroundColor = temp switch {
@@ -86,68 +82,68 @@ class Wordle {
    }
 
    // Draws a separation line
-   void Line () => WriteLine ($"\n{new string ('\u2500', 25)}\n");
+   static void Line () => WriteLine ($"\n{new string ('\u2500', 25)}\n");
 
    // Updates the game state
-   void UpdateGame (ConsoleKeyInfo info) {
+   static void UpdateGame (ConsoleKeyInfo info) {
       char ch = char.ToUpper (info.KeyChar);
-      if (ch is >= 'A' and <= 'Z' && mWord.Length != LEN) {
-         mInputs.Add ((ch, 4));
-         mWord += ch;
-         mPos++;
+      if (ch is >= 'A' and <= 'Z' && sWord.Length != LEN) {
+         sInputs.Add ((ch, 4));
+         sWord += ch;
+         sPos++;
          return;
       }
-      if (info.Key is Enter && mWord.Length == LEN) {
-         if (mValidWords.Contains (mWord)) {
+      if (info.Key is Enter && sWord.Length == LEN) {
+         if (sValidWords.Contains (sWord)) {
             Restructure ();
-            mColored += LEN;
-            mFound = mWord == mSeed;
-            mGameOver = mFound || mColored / LEN == 6;
-            if (mGameOver) return;
+            sColored += LEN;
+            sFound = sWord == sSeed;
+            sGameOver = sFound || sColored / LEN == 6;
+            if (sGameOver) return;
          } else {
-            PrintMsg (mWord);
-            mInputs.RemoveRange (mPos - LEN, LEN);
-            mPos -= LEN;
+            PrintMsg (sWord);
+            sInputs.RemoveRange (sPos - LEN, LEN);
+            sPos -= LEN;
          }
-         mWord = string.Empty;
+         sWord = string.Empty;
          return;
       }
-      if (info.Key is Backspace or Delete && mWord.Length > 0) {
-         mInputs.RemoveAt (--mPos);
-         mWord = mWord[..(mPos % LEN)];
+      if (info.Key is Backspace or Delete && sWord.Length > 0) {
+         sInputs.RemoveAt (--sPos);
+         sWord = sWord[..(sPos % LEN)];
          return;
       }
    }
 
-   // Returns the type of character
-   void Restructure () {
+   // Restructures the list
+   static void Restructure () {
       var rem = new Dictionary<char, int> ();
       var result = new int[LEN];
       for (int i = 0; i < LEN; i++)
-         if (mWord[i] == mSeed[i]) result[i] = 1;
-         else rem[mSeed[i]] = rem.GetValueOrDefault (mSeed[i]) + 1;
+         if (sWord[i] == sSeed[i]) result[i] = 1;
+         else rem[sSeed[i]] = rem.GetValueOrDefault (sSeed[i]) + 1;
       for (int i = 0; i < LEN; i++)
          if (result[i] == default)
-            if (rem.GetValueOrDefault (mWord[i]) > 0) {
+            if (rem.GetValueOrDefault (sWord[i]) > 0) {
                result[i] = 2;
-               rem[mWord[i]]--;
+               rem[sWord[i]]--;
             } else result[i] = 3;
-      mInputs.RemoveRange (mPos - LEN, LEN);
-      mInputs.AddRange (mWord.Select ((c, i) => (c, result[i])));
+      sInputs.RemoveRange (sPos - LEN, LEN);
+      sInputs.AddRange (sWord.Select ((c, i) => (c, result[i])));
    }
 
    // Prints result to the console
-   void PrintResult () {
+   static void PrintResult () {
       Line ();
-      if (mFound) {
+      if (sFound) {
          ForegroundColor = Green;
-         WriteLine ($"You found the word in {mColored / LEN} tries");
+         WriteLine ($"You found the word in {sColored / LEN} tries");
          ResetColor ();
-      } else WriteLine ($"Sorry - the word was {mSeed}");
+      } else WriteLine ($"Sorry - the word was {sSeed}");
    }
 
    // Prints a message to the console
-   void PrintMsg (string s) {
+   static void PrintMsg (string s) {
       Line ();
       ForegroundColor = Yellow;
       WriteLine ($"   {s} is not a word");
@@ -158,11 +154,11 @@ class Wordle {
    #endregion
 
    #region Private data ---------------------------------------------
-   List<(char, int)> mInputs = [];
-   int mPos, mColored;
-   bool mGameOver, mFound;
-   string mSeed, mWord;
-   string[] mValidWords = [];
+   static List<(char, int)> sInputs = [];
+   static int sPos, sColored;
+   static bool sGameOver, sFound;
+   static string sSeed = string.Empty, sWord = string.Empty;
+   static string[] sValidWords = [];
    #endregion
 
    #region Constants ------------------------------------------------
