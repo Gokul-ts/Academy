@@ -77,7 +77,7 @@ static class FileParser {
 }
 #endregion
 
-#region Enum
+#region enum Estate -------------------------------------------------
 // Enums holding various states of FileParser
 enum EState { A, B, C, D, E, F, G, H, I, J, Z }
 #endregion
