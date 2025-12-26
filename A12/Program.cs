@@ -6,6 +6,7 @@
 // Program to implement the wordle game.
 // ------------------------------------------------------------------------------------------------
 using System.Text;
+using static EState;
 using static System.Console;
 using static System.ConsoleColor;
 using static System.ConsoleKey;
@@ -39,10 +40,10 @@ static class Wordle {
    // Initializes the words for seed and valid words
    static void Initialize () {
       try {
-         var (seedWords, valWords) = (File.ReadLines (@"data\puzzle.txt"), File.ReadLines (@"data\dict.txt"));
-         int max = seedWords.Count () - 1;
+         var (seedWords, valWords) = (File.ReadAllLines (@"data\puzzle.txt"), File.ReadAllLines (@"data\dict.txt"));
+         int max = seedWords.Length - 1;
          if (seedWords != null && valWords != null)
-            (sSeed, sValidWords) = (seedWords.ToArray ()[new Random ().Next (0, max)], [.. valWords]);
+            (sSeed, sValidWords) = (seedWords[new Random ().Next (0, max)], valWords);
       } catch (Exception ex) {
          Write (ex.Message); ReadKey (true);
       }
@@ -57,22 +58,22 @@ static class Wordle {
          if (i < sInputs.Count) {
             var (ch, type) = sInputs[i];
             if (i < sColored) ForegroundColor = type switch {
-               1 => Green,
-               2 => Blue,
+               GREEN => Green,
+               BLUE => Blue,
                _ => DarkGray,
             };
             Write ($"{ch} ");
             ResetColor ();
-         } else Write ($"{(i == sPos ? '\u25cc' : '.')} ");
+         } else Write ($"{(i == sInputs.Count ? '\u25cc' : '.')} ");
       }
       Line ();
       var temp = sInputs.Take (sColored);
       for (int j = 1; j <= alpha; j++) {
          char c = (char)(j + 64);
          ForegroundColor = temp switch {
-            _ when temp.Contains ((c, 1)) => Green,
-            _ when temp.Contains ((c, 2)) => Blue,
-            _ when temp.Contains ((c, 3)) => DarkGray,
+            _ when temp.Contains ((c, GREEN)) => Green,
+            _ when temp.Contains ((c, BLUE)) => Blue,
+            _ when temp.Contains ((c, GRAY)) => DarkGray,
             _ => White
          };
          Write ($"{c}   ");
@@ -88,9 +89,8 @@ static class Wordle {
    static void UpdateGame (ConsoleKeyInfo info) {
       char ch = char.ToUpper (info.KeyChar);
       if (ch is >= 'A' and <= 'Z' && sWord.Length != LEN) {
-         sInputs.Add ((ch, 4));
+         sInputs.Add ((ch, WHITE));
          sWord += ch;
-         sPos++;
          return;
       }
       if (info.Key is Enter && sWord.Length == LEN) {
@@ -102,15 +102,14 @@ static class Wordle {
             if (sGameOver) return;
          } else {
             PrintMsg (sWord);
-            sInputs.RemoveRange (sPos - LEN, LEN);
-            sPos -= LEN;
+            sInputs.RemoveRange (sInputs.Count - LEN, LEN);
          }
          sWord = string.Empty;
          return;
       }
       if (info.Key is Backspace or Delete && sWord.Length > 0) {
-         sInputs.RemoveAt (--sPos);
-         sWord = sWord[..(sPos % LEN)];
+         sInputs.RemoveAt (sInputs.Count - 1);
+         sWord = sWord[..^1];
          return;
       }
    }
@@ -118,17 +117,17 @@ static class Wordle {
    // Restructures the list
    static void Restructure () {
       var rem = new Dictionary<char, int> ();
-      var result = new int[LEN];
+      var result = new EState[LEN];
       for (int i = 0; i < LEN; i++)
-         if (sWord[i] == sSeed[i]) result[i] = 1;
+         if (sWord[i] == sSeed[i]) result[i] = GREEN;
          else rem[sSeed[i]] = rem.GetValueOrDefault (sSeed[i]) + 1;
       for (int i = 0; i < LEN; i++)
          if (result[i] == default)
             if (rem.GetValueOrDefault (sWord[i]) > 0) {
-               result[i] = 2;
+               result[i] = BLUE;
                rem[sWord[i]]--;
-            } else result[i] = 3;
-      sInputs.RemoveRange (sPos - LEN, LEN);
+            } else result[i] = GRAY;
+      sInputs.RemoveRange (sInputs.Count - LEN, LEN);
       sInputs.AddRange (sWord.Select ((c, i) => (c, result[i])));
    }
 
@@ -154,8 +153,8 @@ static class Wordle {
    #endregion
 
    #region Private data ---------------------------------------------
-   static List<(char, int)> sInputs = [];
-   static int sPos, sColored;
+   static List<(char, EState)> sInputs = [];
+   static int sColored;
    static bool sGameOver, sFound;
    static string sSeed = string.Empty, sWord = string.Empty;
    static string[] sValidWords = [];
@@ -165,4 +164,8 @@ static class Wordle {
    const int LEN = 5;
    #endregion
 }
+#endregion
+
+#region enum EState -------------------------------------------------------------------------------
+enum EState { NONE, GREEN, BLUE, GRAY, WHITE }
 #endregion
