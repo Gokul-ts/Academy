@@ -1,17 +1,15 @@
-﻿using static System.Console;
+﻿using System.Text;
+using static System.Console;
 
+#region class Program --------------------------------------------------------------------------
 internal class Program {
    private static void Main () {
       var editor = new TextEditor ();
       for (; ; ) {
          var input = ReadLine () ?? "";
-         var data = input.Split (' ');
-         var cmd = string.Empty;
-         string value = string.Empty;
+         var (data, cmd, value) = (input.Split (' '), string.Empty, string.Empty);
          cmd = data[0];
-         for (int i = 1; i < data.Length; i++) {
-            value += data[i];
-         }
+         for (int i = 1; i < data.Length; i++) value += data[i];
          switch (cmd.ToUpper ()) {
             case "ADD": {
                   editor.Add (value);
@@ -28,63 +26,74 @@ internal class Program {
                   break;
                }
             case "UNDO": {
+                  if (value != string.Empty) Error ();
                   editor.Undo ();
                   break;
                }
             case "REDO": {
+                  if (value != string.Empty) Error ();
                   editor.Redo ();
                   break;
                }
             case "EXIT": {
+                  if (value != string.Empty) Error ();
                   editor.Exit ();
                   break;
                }
             default: {
-                  WriteLine ("Invalid cmd..Please try again!");
+                  Error ();
                   break;
                }
          }
       }
+
+      void Error () => WriteLine ("Invalid cmd..Please try again!");
    }
 }
+#endregion
 
+#region class TextEditor --------------------------------------------------------------------------
 class TextEditor () {
+   #region Methods --------------------------------------------------
    public void Add (string value) {
-      editor.Add (value);
+      editor.Append (value);
       int n = value.Length;
       undo.Push (() => { Delete (n); });
-
    }
+
    public void Delete (int count) {
-      if (count > editor[^1].Length) return;
-      string s = editor[^1];
+      if (count > editor.Length) { return; }
+      string s = editor.ToString ().Substring (editor.Length - count, count);
       undo.Push (() => { Add (s); });
-      var temp = editor[^1][..count];
-      editor[^1] = editor[^1][..^count];
-      editor.Remove ("");
+      editor.Remove (editor.Length - count, count);
+     
    }
-   public void Undo () {
-      undo.Peek ().Invoke ();
-      redo.Push (undo.Pop ());
 
+   public void Undo () {
+      if (undo.Count > 0) {
+         undo.Peek ().Invoke ();
+         redo.Push (undo.Pop ());
+      }
    }
+
    public void Redo () {
-      redo.Peek ().Invoke ();
-      undo.Push (redo.Pop ());
+      if (redo.Count > 0) {
+         redo.Peek ().Invoke ();
+         undo.Push (redo.Pop ());
+      }
    }
 
    public void Show () {
-      foreach (var item in editor) {
-         Write (item);
-      }
-      if (editor.Count > 0) WriteLine ();
-   }
-   public void Exit () {
-
-      Environment.Exit (0);
+      if (editor.Length > 0) WriteLine (editor);
    }
 
-   List<string> editor = [];
+   public void Exit () => Environment.Exit (0);
+   #endregion
+
+   #region Private data ---------------------------------------------
+   StringBuilder editor = new StringBuilder ();
    Stack<Action> redo = [];
    Stack<Action> undo = [];
+   #endregion
 }
+#endregion
