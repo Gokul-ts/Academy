@@ -11,16 +11,22 @@ internal class Program {
    static void Main () {
       try {
          Dictionary<string, List<string>> data = [];
-         foreach (var word in File.ReadAllLines (@"data\words.txt")) {
+         foreach (var word in LoadStrings (@"data\words.txt")) {
             string key = new ([.. word.Order ()]);
             if (data.TryGetValue (key, out var wList))
                wList.Add (word);
             else data.Add (key, []);
          }
-         data = data.Where (a => a.Value.Count > 1).OrderByDescending (a => a.Value.Count).ToDictionary ();
+         data = data.Where (a => a.Value.Count > 1)
+                    .OrderByDescending (a => a.Value.Count)
+                    .ThenBy (a => a.Value[0])
+                    .ToDictionary ();
          foreach (var val in data.Values) WriteLine ($"{val.Count} {string.Join (' ', val)}");
       } catch (Exception) {
          WriteLine ("Couldn't read file!!");
       }
+
+      // Helper function to read a file 
+      string[] LoadStrings (string filename) => File.ReadAllLines (filename);
    }
 }
