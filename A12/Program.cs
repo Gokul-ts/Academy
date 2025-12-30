@@ -41,9 +41,8 @@ static class Wordle {
    static void Initialize () {
       try {
          var (seedWords, valWords) = (File.ReadAllLines (@"data\puzzle.txt"), File.ReadAllLines (@"data\dict.txt"));
-         int max = seedWords.Length - 1;
-         if (seedWords != null && valWords != null)
-            (sSeed, sValidWords) = (seedWords[new Random ().Next (0, max)], valWords);
+         if (seedWords.Length == 0 || valWords.Length == 0) throw new InvalidDataException ("File empty!");
+         (sSeed, sValidWords) = (seedWords[new Random ().Next (0, seedWords.Length - 1)], valWords);
       } catch (Exception ex) {
          Write (ex.Message); ReadKey (true);
       }
