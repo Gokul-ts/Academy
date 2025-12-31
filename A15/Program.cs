@@ -44,7 +44,7 @@ internal class Program {
 #region Class PriorityQueue -----------------------------------------------------------------------
 /// <summary>Class priority queue is a binary tree that implements the shape property to 
 /// maintain balance and the ordering property that enables it to work as a priority queue</summary>
-class PriorityQueue<T> (int capacity = 0) : IEnumerable<T> where T : IComparable<T> {
+public class PriorityQueue<T> (int capacity = 0) : IEnumerable<T> where T : IComparable<T> {
    #region Properties -----------------------------------------------
    public bool IsEmpty => mCount == 0;
    #endregion
