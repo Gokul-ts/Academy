@@ -22,7 +22,7 @@ internal class Program {
       }
       WriteLine ($"Test case {(TestQ () ? "passed" : "failed")}");
 
-      // Helper function check if each parent node is less than its children
+      // Helper function to check if each parent node is less than its children
       bool TestQ () {
          if (!q.IsEmpty) {
             ReadOnlySpan<int> arr = q.ToArray ();
@@ -72,7 +72,7 @@ class PriorityQueue<T> (int capacity = 0) : IEnumerable<T> where T : IComparable
 
    /// <summary>Removes and returns the smallest element and re-orders the queue</summary>
    public T Dequeue () {
-      if (IsEmpty) throw new Exception ("Queue is empty");
+      if (IsEmpty) throw new InvalidOperationException ("Queue is empty");
       var elem = mList[0];
       int last = mCount - 1;
       mList[0] = mList[last];
