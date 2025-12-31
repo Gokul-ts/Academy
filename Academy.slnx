@@ -1,2 +1,4 @@
 <Solution>
+  <Project Path="A15/A15.csproj" />
+  <Project Path="TestQueue/TestQueue.csproj" />
 </Solution>
