@@ -40,13 +40,16 @@ static class Wordle {
    // Initializes the words for seed and valid words
    static void Initialize () {
       try {
-         var (seedWords, valWords) = (File.ReadAllLines (@"data\puzzle.txt"), File.ReadAllLines (@"data\dict.txt"));
+         var (seedWords, valWords) = (GetWords (@"data\puzzle.txt"), GetWords (@"data\dict.txt"));
          if (seedWords.Length == 0 || valWords.Length == 0) throw new InvalidDataException ("File empty!");
          (sSeed, sValidWords) = (seedWords[new Random ().Next (0, seedWords.Length - 1)], valWords);
       } catch (Exception ex) {
          Write (ex.Message); ReadKey (true);
       }
    }
+
+   // Reads and returns the data from a file
+   static string[] GetWords (string path) => File.ReadAllLines (path);
 
    // Displays the interface to the console
    static void Display () {
@@ -57,8 +60,8 @@ static class Wordle {
          if (i < sInputs.Count) {
             var (ch, type) = sInputs[i];
             if (i < sColored) ForegroundColor = type switch {
-               GREEN => Green,
-               BLUE => Blue,
+               EXACT => Green,
+               MISPLACED => Blue,
                _ => DarkGray,
             };
             Write ($"{ch} ");
@@ -70,9 +73,9 @@ static class Wordle {
       for (int j = 1; j <= alpha; j++) {
          char c = (char)(j + 64);
          ForegroundColor = temp switch {
-            _ when temp.Contains ((c, GREEN)) => Green,
-            _ when temp.Contains ((c, BLUE)) => Blue,
-            _ when temp.Contains ((c, GRAY)) => DarkGray,
+            _ when temp.Contains ((c, EXACT)) => Green,
+            _ when temp.Contains ((c, MISPLACED)) => Blue,
+            _ when temp.Contains ((c, ABSENT)) => DarkGray,
             _ => White
          };
          Write ($"{c}   ");
@@ -88,7 +91,7 @@ static class Wordle {
    static void UpdateGame (ConsoleKeyInfo info) {
       char ch = char.ToUpper (info.KeyChar);
       if (ch is >= 'A' and <= 'Z' && sWord.Length != LEN) {
-         sInputs.Add ((ch, WHITE));
+         sInputs.Add ((ch, HOLD));
          sWord += ch;
          return;
       }
@@ -118,14 +121,14 @@ static class Wordle {
       var rem = new Dictionary<char, int> ();
       var result = new EState[LEN];
       for (int i = 0; i < LEN; i++)
-         if (sWord[i] == sSeed[i]) result[i] = GREEN;
+         if (sWord[i] == sSeed[i]) result[i] = EXACT;
          else rem[sSeed[i]] = rem.GetValueOrDefault (sSeed[i]) + 1;
       for (int i = 0; i < LEN; i++)
          if (result[i] == default)
             if (rem.GetValueOrDefault (sWord[i]) > 0) {
-               result[i] = BLUE;
+               result[i] = MISPLACED;
                rem[sWord[i]]--;
-            } else result[i] = GRAY;
+            } else result[i] = ABSENT;
       sInputs.RemoveRange (sInputs.Count - LEN, LEN);
       sInputs.AddRange (sWord.Select ((c, i) => (c, result[i])));
    }
@@ -166,5 +169,5 @@ static class Wordle {
 #endregion
 
 #region enum EState -------------------------------------------------------------------------------
-enum EState { NONE, GREEN, BLUE, GRAY, WHITE }
+enum EState { NONE, EXACT, MISPLACED, ABSENT, HOLD }
 #endregion
