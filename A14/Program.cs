@@ -16,8 +16,8 @@ internal class Program {
                          .Select (a => a.Order ().ToArray ())
                          .OrderByDescending (a => a.Length);
          foreach (var anagrams in data) WriteLine ($"{anagrams.Length} {string.Join (' ', anagrams)}");
-      } catch (Exception) {
-         WriteLine ("Couldn't read file!!");
+      } catch (Exception e) {
+         WriteLine (e.Message);
       }
 
       // Helper function to read a file 
