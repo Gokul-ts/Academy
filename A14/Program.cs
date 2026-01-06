@@ -10,18 +10,12 @@ using static System.Console;
 internal class Program {
    static void Main () {
       try {
-         Dictionary<string, List<string>> data = [];
-         foreach (var word in LoadStrings (@"data\words.txt")) {
-            string key = new ([.. word.Order ()]);
-            if (data.TryGetValue (key, out var wList))
-               wList.Add (word);
-            else data.Add (key, []);
-         }
-         data = data.Where (a => a.Value.Count > 1)
-                    .OrderByDescending (a => a.Value.Count)
-                    .ThenBy (a => a.Value[0])
-                    .ToDictionary ();
-         foreach (var val in data.Values) WriteLine ($"{val.Count} {string.Join (' ', val)}");
+         var words = LoadStrings (@"data\words.txt");
+         var data = words.GroupBy (x => new string ([.. x.Order ()]))
+                         .Where (x => x.Count () >= 2)
+                         .Select (a => a.Order ().ToArray ())
+                         .OrderByDescending (a => a.Length);
+         foreach (var anagrams in data) WriteLine ($"{anagrams.Length} {string.Join (' ', anagrams)}");
       } catch (Exception) {
          WriteLine ("Couldn't read file!!");
       }
