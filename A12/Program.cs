@@ -135,7 +135,7 @@ static class Wordle {
       for (int i = 0; i < LEN; i++) {
          var w = sWord[i];
          ref var r = ref result[i];
-         if (r == default)
+         if (r == EState.None)
             if (rem.GetValueOrDefault (w) > 0) {
                r = Misplaced;
                rem[w]--;
@@ -181,5 +181,5 @@ static class Wordle {
 #endregion
 
 #region enum EState -------------------------------------------------------------------------------
-enum EState { Default, Exact, Misplaced, Absent, Hold }
+enum EState { None, Exact, Misplaced, Absent, Hold }
 #endregion
