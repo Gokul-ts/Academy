@@ -5,13 +5,12 @@
 // Program.cs
 // Program to find all anagrams from an input text file and sort them based on count.
 // ------------------------------------------------------------------------------------------------
-using System.Reflection;
 using static System.Console;
 
 internal class Program {
    static void Main () {
       try {
-         var words = LoadStrings ("A14.data.words.txt");
+         var words = LoadStrings (@"..\..\..\data\words.txt");
          var data = words.GroupBy (x => new string ([.. x.Order ()]))
                          .Where (x => x.Count () >= 2)
                          .Select (a => a.Order ().ToArray ())
@@ -22,10 +21,6 @@ internal class Program {
       }
 
       // Helper function to read a file 
-      static string[] LoadStrings (string file) {
-         using var stream = Assembly.GetExecutingAssembly ().GetManifestResourceStream (file);
-         using var reader = new StreamReader (stream!);
-         return reader.ReadToEnd ().Split ("\r\n");
-      }
+      static string[] LoadStrings (string file) => File.ReadAllLines (file);
    }
 }
