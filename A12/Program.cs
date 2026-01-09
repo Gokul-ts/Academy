@@ -28,7 +28,7 @@ static class Wordle {
       CursorVisible = false;
       Initialize ();
       Display ();
-      while (!sIsGameOver) {
+      while (!siGameOver) {
          ConsoleKeyInfo key = ReadKey (true);
          UpdateGame (key);
          Display ();
@@ -106,9 +106,9 @@ static class Wordle {
          if (sValidWords.Contains (sWord)) {
             Restructure ();
             sColored += LEN;
-            sFound = sWord == sSeed;
-            sIsGameOver = sFound || sColored / LEN == 6;
-            if (sIsGameOver) return;
+            siFound = sWord == sSeed;
+            siGameOver = siFound || sColored / LEN == 6;
+            if (siGameOver) return;
          } else {
             PrintMsg (sWord);
             sInputs.RemoveRange (sInputs.Count - LEN, LEN);
@@ -148,7 +148,7 @@ static class Wordle {
    // Prints result to the console
    static void PrintResult () {
       Line ();
-      if (sFound) {
+      if (siFound) {
          ForegroundColor = Green;
          WriteLine ($"You found the word in {sColored / LEN} tries");
          ResetColor ();
@@ -169,7 +169,7 @@ static class Wordle {
    #region Private data ---------------------------------------------
    static List<(char, EState)> sInputs = [];
    static int sColored;
-   static bool sIsGameOver, sFound;
+   static bool siGameOver, siFound;
    static string sSeed = string.Empty, sWord = string.Empty;
    static string[] sValidWords = [];
    #endregion

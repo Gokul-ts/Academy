@@ -14,10 +14,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="data\dict.txt">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="data\puzzle.txt">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
 
