@@ -8,15 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="data\dict.txt" />
-    <None Remove="data\puzzle.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="data\dict.txt">
-    </EmbeddedResource>
-    <EmbeddedResource Include="data\puzzle.txt">
-    </EmbeddedResource>
+    <EmbeddedResource Include="data\dict.txt"/>
+    <EmbeddedResource Include="data\puzzle.txt"/>
   </ItemGroup>
 
 </Project>
