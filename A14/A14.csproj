@@ -8,9 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="data\words.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="data\words.txt">
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
